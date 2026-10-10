@@ -1,0 +1,11 @@
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+已打开 COM8 @ 115200, 记录到 E:\myStudy\2026-2027autumn\TI_codes\ti_wave\wave_20261010_181716.csv
+按 Ctrl+C 停止
+
+[18:17:19.973] #BOOT,MSPM0G3507 wave recognizer ready
+[18:17:19.984] #BOOT,MSPM0G3507 wave recognizer ready
+[18:17:19.988] #BOOT,MSPM0G3507 wave recognizer ready
+[18:19:47.217] #BOOT,MSPM0G3507 wave recognizer ready
+[18:42:09.880] #BOOT,MSPM0G3507 wave recognizer ready

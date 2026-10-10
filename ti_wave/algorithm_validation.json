@@ -1,0 +1,58 @@
+[
+  {
+    "name": "sine100",
+    "rc": 0,
+    "type": 0,
+    "freq": 100.00655364990234,
+    "vpp": 0.9992337226867676,
+    "pass": true
+  },
+  {
+    "name": "sine200",
+    "rc": 0,
+    "type": 0,
+    "freq": 199.99212646484375,
+    "vpp": 0.9992243051528931,
+    "pass": true
+  },
+  {
+    "name": "sine400",
+    "rc": 0,
+    "type": 0,
+    "freq": 399.9881286621094,
+    "vpp": 0.9992004632949829,
+    "pass": true
+  },
+  {
+    "name": "square200",
+    "rc": 0,
+    "type": 1,
+    "freq": 199.9862060546875,
+    "vpp": 0.9992673993110657,
+    "pass": true
+  },
+  {
+    "name": "dc",
+    "rc": -2,
+    "type": 4,
+    "freq": 0,
+    "vpp": 0,
+    "pass": true
+  },
+  {
+    "name": "rail",
+    "rc": -3,
+    "type": 4,
+    "freq": 0,
+    "vpp": 0,
+    "pass": true
+  },
+  {
+    "name": "captured",
+    "rc": -3,
+    "type": 4,
+    "freq": 0,
+    "vpp": 0,
+    "pass": true
+  }
+]

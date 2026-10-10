@@ -1,0 +1,6 @@
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+已打开 COM8 @ 115200, 记录到 E:\myStudy\2026-2027autumn\TI_codes\ti_wave\wave_20261010_175541.csv
+按 Ctrl+C 停止
+

@@ -1,0 +1,75 @@
+/**
+ * TI 杯赛道一 · MSPM0G3507 波形识别 —— SysConfig 外设配置
+ *
+ * 本文件生成 ti_msp_dl_config.c / ti_msp_dl_config.h, 提供:
+ *     SYSCFG_DL_init()       —— 一次性初始化时钟 / GPIO / ADC / 定时器 / 串口
+ *     ADC12_0_INST  (ADC0)   —— PA25 采样, 由 TIMG0 零事件触发
+ *     TIMER_0_INST  (TIMG0)  —— 100 us 周期 => 10 kHz 采样率
+ *     UART_0_INST   (UART0)  —— 115200-8-N-1, TX=PA10 RX=PA11 经 XDS110 走 USB
+ *
+ * 不要手工编辑生成的 .c/.h, 改配置一律改本文件(或在 CCS 里双击图形界面改)。
+ *
+ * @note 属性赋值顺序有意义: 必须先把通道/触发源选好, peripheral.*.Pin 这类
+ *       动态引脚属性才会存在, 否则 SysConfig 报 "$assign of undefined"。
+ */
+//@cliArgs --device "MSPM0G350X" --package "LQFP-64(PM)" --part "Default"
+//@v2CliArgs --device "MSPM0G3507" --package "LQFP-64(PM)"
+// @cliArgs --board /ti/boards/LP_MSPM0G3507 --rtos nortos
+
+/**
+ * Import the modules used in this configuration.
+ */
+const Board  = scripting.addModule("/ti/driverlib/Board");
+const SYSCTL = scripting.addModule("/ti/driverlib/SYSCTL");
+
+/* ---- ADC12: 模拟输入 PA25 (ADC0.2), 由定时器事件触发 ---- */
+const ADC12  = scripting.addModule("/ti/driverlib/ADC12", {}, false);
+const ADC121 = ADC12.addInstance();
+
+/* ---- TIMER: 100 us 周期 => 10 kHz 采样率 ---- */
+const TIMER  = scripting.addModule("/ti/driverlib/TIMER", {}, false);
+const TIMER1 = TIMER.addInstance();
+
+/* ---- UART: 把识别结果上报给 PC ---- */
+const UART   = scripting.addModule("/ti/driverlib/UART", {}, false);
+const UART1  = UART.addInstance();
+
+/**
+ * ============ ADC12_0: PA25 / ADC0.2, 12 位, TIMG0 零事件触发, MEM0 中断 ============
+ * 采样时钟 ULPCLK(32MHz) / 8 = 4 MHz。12 位转换约需 14 个时钟 => 3.5 us,
+ * 采样时间取 1 us 时总转换约 4.5 us, 远小于 100 us 触发周期, 不会丢点。
+ */
+ADC121.$name             = "ADC12_0";
+ADC121.sampClkSrc        = "DL_ADC12_CLOCK_ULPCLK";
+ADC121.sampClkDiv        = "DL_ADC12_CLOCK_DIVIDE_8";
+ADC121.adcMem0chansel    = "DL_ADC12_INPUT_CHAN_2";   /* PA25 = ADC0.2 */
+ADC121.sampleTime0       = "1 us";
+ADC121.trigSrc           = "DL_ADC12_TRIG_SRC_EVENT"; /* 由 TIMER_0 发布的事件触发 */
+ADC121.subChanID         = 1;
+ADC121.enabledInterrupts = ["DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED"];
+ADC121.peripheral.$assign         = "ADC0";
+ADC121.peripheral.adcPin2.$assign = "PA25";
+
+/* ============ TIMER_0: TIMG0 周期模式, 100 us => 10 kHz ============ */
+/* 时钟: BUSCLK 32 MHz / 1 / 1 = 32 MHz, 32 MHz x 100 us = 3200 计数(装载值 3199)。
+ * 3200 < 65536, 16 位定时器放得下, 无需预分频, 也就没有分频引入的抖动。 */
+TIMER1.$name                  = "TIMER_0";
+TIMER1.timerClkSrc            = "BUSCLK";
+TIMER1.timerClkPrescale       = 1;
+TIMER1.timerClkDiv            = 1;
+TIMER1.timerPeriod            = "100 us";
+TIMER1.event1PublisherChannel = 1;
+TIMER1.peripheral.$assign     = "TIMG0";
+
+/* ============ UART_0: 115200-8-N-1, 接 XDS110 背板串口 ============ */
+UART1.$name                    = "UART_0";
+UART1.targetBaudRate           = 115200;
+UART1.enableFIFO               = false;
+UART1.peripheral.$assign       = "UART0";
+UART1.peripheral.txPin.$assign = "PA10";
+UART1.peripheral.rxPin.$assign = "PA11";
+UART1.uartClkSrc               = "BUSCLK";
+UART1.enableInternalLoopback   = false;
+
+SYSCTL.forceDefaultClkConfig = true;
+SYSCTL.clockTreeEn           = true;

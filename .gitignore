@@ -1,0 +1,45 @@
+# ---- 构建输出 ----
+Debug/
+Release/
+*.o
+*.obj
+*.d
+*.d_raw
+*.out
+*.map
+*.hex
+*.bin
+*.exe
+*.elf
+*.lst
+ccsObjs.opt
+device.opt
+device.cmd.genlibs
+device_linker.cmd
+makefile
+objects.mk
+sources.mk
+subdir_rules.mk
+subdir_vars.mk
+
+# ---- clangd / IDE 缓存 ----
+.clangd/.cache/
+compile_commands.json
+
+# ---- 压缩包与大体积二进制 ----
+*.zip
+*.rar
+*.7z
+*.pdf
+
+# ---- 本机工具与编辑器配置 ----
+.claude/
+.theia/
+.mcp.json
+__pycache__/
+*.pyc
+
+# ---- 操作系统 ----
+Thumbs.db
+desktop.ini
+.DS_Store

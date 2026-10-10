@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    TI 杯赛道一 · MSPM0G3507 波形识别 —— CCS 工程导入文件
+
+    用法: CCS 菜单 Project -> Import CCS Projects...
+          选 "Select search-directory" 指到本文件所在目录, 勾选工程, Finish。
+    CCS 会据此建出完整工程并自动调用 SysConfig 生成 ti_msp_dl_config.c/.h。
+
+    如果这里的 SDK 路径和你机器上的不一致, 导入后右键工程 ->
+    Properties -> Products 里重新勾选 MSPM0 SDK 即可, 不影响源码。
+-->
+<projectSpec>
+    <applicability>
+        <when>
+            <context
+                deviceFamily="ARM"
+                deviceId="MSPM0G3507"
+            />
+        </when>
+    </applicability>
+
+    <project
+        title="ti_wave"
+        name="ti_wave"
+        configurations="Debug"
+        toolChain="TICLANG"
+        connection="TIXDS110_Connection.xml"
+        device="MSPM0G3507"
+        ignoreDefaultDeviceSettings="true"
+        ignoreDefaultCCSSettings="true"
+        products="MSPM0-SDK;sysconfig"
+        compilerBuildOptions="
+            -I${PROJECT_ROOT}
+            -I${PROJECT_ROOT}/${ConfigName}
+            -O2
+            @device.opt
+            -I${COM_TI_MSPM0_SDK_INSTALL_DIR}/source/third_party/CMSIS/Core/Include
+            -I${COM_TI_MSPM0_SDK_INSTALL_DIR}/source
+            -mcpu=cortex-m0plus
+            -march=thumbv6m
+            -mfloat-abi=soft
+            -mthumb
+            -Wall
+        "
+        linkerBuildOptions="
+            -ldevice.cmd.genlibs
+            -L${COM_TI_MSPM0_SDK_INSTALL_DIR}/source
+            -L${PROJECT_ROOT}
+            -L${PROJECT_BUILD_DIR}/syscfg
+            -Wl,--rom_model
+            -Wl,--warn_sections
+            -L${CG_TOOL_ROOT}/lib
+            -llibc.a
+        "
+        sysConfigBuildOptions="
+            --output .
+            --product ${COM_TI_MSPM0_SDK_INSTALL_DIR}/.metadata/product.json
+            --compiler ticlang
+        "
+        sourceLookupPath="${COM_TI_MSPM0_SDK_INSTALL_DIR}/source/ti/driverlib"
+        description="TI Cup Track 1: MSPM0G3507 waveform recognition over UART">
+
+        <property name="buildProfile" value="release"/>
+        <property name="isHybrid" value="true"/>
+
+        <!-- 主程序: 采样 + 主循环 + ADC 中断 -->
+        <file path="main.c" openOnCreation="true" excludeFromBuild="false" action="copy"/>
+
+        <!-- 算法: 波形识别与参数估计(纯 DSP, 不依赖 TI SDK) -->
+        <file path="wave_algo.c" openOnCreation="false" excludeFromBuild="false" action="copy"/>
+        <file path="wave_algo.h" openOnCreation="false" excludeFromBuild="false" action="copy"/>
+
+        <!-- 通信: 结果帧拼接与 UART 发送 -->
+        <file path="uart_report.c" openOnCreation="false" excludeFromBuild="false" action="copy"/>
+        <file path="uart_report.h" openOnCreation="false" excludeFromBuild="false" action="copy"/>
+
+        <!-- SysConfig 外设配置: 双击可在图形界面里改 ADC/定时器/串口 -->
+        <file path="ti_wave.syscfg" openOnCreation="false" excludeFromBuild="false" action="copy"/>
+
+        <!--
+            启动文件(startup_mspm0g350x_ticlang.c)与链接脚本(device_linker.cmd)
+            故意不在此列出 —— MSPM0 的 CCS 工程会按器件自动把它们加入,
+            与 TI 官方 SysConfig 例程(empty / adc12_triggered_by_timer_event)
+            的做法一致。手动列出来反而可能导致符号重复定义。
+
+            注意: 命令行 makefile 必须显式包含启动文件, 两者要求不同, 属正常现象。
+        -->
+    </project>
+</projectSpec>

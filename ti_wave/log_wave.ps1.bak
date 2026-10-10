@@ -1,0 +1,74 @@
+# log_wave.ps1 —— MSPM0G3507 波形识别结果记录脚本
+#
+# 用法(在 PowerShell 里):
+#     .\log_wave.ps1
+#     .\log_wave.ps1 -Port COM8 -Log D:\wave.csv
+#
+# 协议帧(见 uart_report.c):
+#     RESULT,<type>,<freq>,<vpp>,<duty>\r\n   识别结果
+#     #ERR,no valid signal\r\n               无效信号
+#     #BOOT,...\r\n                           开机标识
+# 以 '#' 开头的行是注释行, RESULT 开头的是结果行。
+
+param(
+    [string]$Port = 'COM8',                                    # Application/User UART, 不是 COM7
+    [int]$Baud    = 115200,
+    [string]$Log  = "wave_$(Get-Date -Format 'yyyyMMdd_HHmmss').csv"
+)
+
+$ErrorActionPreference = 'Stop'
+
+# ---- 开串口前先确认没被占用 --------------------------------------------------
+# Windows 的 COM 口是独占的。CCS 的 Terminal 里若开着 Serial Monitor,
+# 或者调试会话通过 serial 工具连着, 这里 Open() 会直接抛 "Access denied"。
+$sp = [System.IO.Ports.SerialPort]::new($Port, $Baud, 'None', 8, 'One')
+$sp.NewLine      = "`r`n"      # 对应协议里的 \r\n
+$sp.ReadTimeout  = 1000
+$sp.WriteTimeout = 1000
+$sp.DtrEnable    = $false      # 别让 DTR 意外复位板子
+$sp.RtsEnable    = $false
+
+$sw = $null
+try {
+    $sp.Open()
+    Write-Host "已打开 $Port @ $Baud, 记录到 $Log" -ForegroundColor Green
+    Write-Host "按 Ctrl+C 停止`n" -ForegroundColor DarkGray
+
+    $sw = [System.IO.StreamWriter]::new($Log, $false, [System.Text.Encoding]::UTF8)
+    $sw.AutoFlush = $true       # 断电/Ctrl+C 也不丢已收到的行
+    $sw.WriteLine('time,line')  # CSV 表头
+
+    $n = 0
+    while ($true) {
+        try {
+            $line = $sp.ReadLine()
+        } catch [System.TimeoutException] {
+            continue            # 1 秒没数据很正常, 继续等
+        }
+
+        $line = $line.Trim()
+        if ([string]::IsNullOrEmpty($line)) { continue }
+
+        # PC 收到该行的时刻。板子本身不带时间戳, 这是最接近的近似,
+        # 精度受 USB↔串口缓冲和轮询影响, 几十毫秒量级。
+        $ts = (Get-Date).ToString('HH:mm:ss.fff')
+
+        Write-Host ("[{0}] {1}" -f $ts, $line)
+        $sw.WriteLine("$ts,$line")
+        $n++
+    }
+}
+catch [System.UnauthorizedAccessException] {
+    Write-Host "打不开 $Port —— 端口被占用。" -ForegroundColor Red
+    Write-Host "检查: CCS 的 Terminal 里是否开着 Serial Monitor; 或者调试侧是否还连着串口工具。" -ForegroundColor Yellow
+}
+catch [System.IO.IOException] {
+    Write-Host "IO 错误: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "最常见原因是 USB 被拔了, 或板子复位导致 COM 口重新枚举。" -ForegroundColor Yellow
+}
+finally {
+    if ($sw) { $sw.Close() }
+    if ($sp.IsOpen) { $sp.Close() }
+    Write-Host "`n串口已释放。" -ForegroundColor Yellow
+    if ($n -gt 0) { Write-Host "共记录 $n 行 -> $Log" -ForegroundColor Green }
+}

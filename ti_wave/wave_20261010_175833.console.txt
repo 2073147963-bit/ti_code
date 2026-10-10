@@ -1,0 +1,12 @@
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+已打开 COM8 @ 115200, 记录到 E:\myStudy\2026-2027autumn\TI_codes\ti_wave\wave_20261010_175833.csv
+按 Ctrl+C 停止
+
+IO 错误: 由于线程退出或应用程序请求，已中止 I/O 操作。
+
+最常见原因是 USB 被拔了, 或板子复位导致 COM 口重新枚举。
+
+串口已释放。
+(base) PS E:\myStudy\2026-2027autumn\TI_codes\ti_wave> 
